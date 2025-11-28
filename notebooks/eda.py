@@ -14,18 +14,12 @@ app = marimo.App(width="medium")
 
 @app.cell
 def _():
-    import polars as pl
+    from fraud_detection.data.loader import read_data
 
-    raw_data = pl.read_csv(
-        "data\creditcard.csv", schema_overrides={"Time": pl.Float64}
-    )
-    return pl, raw_data
+    raw_data = read_data()
 
-
-@app.cell
-def _(raw_data):
     raw_data
-    return
+    return (raw_data,)
 
 
 @app.cell
@@ -42,15 +36,20 @@ def _(raw_data):
     total_rows = raw_data_sample.height
     train_size = int(total_rows * 0.7)  # 70% for training
     validation_size = int(total_rows * 0.15)  # 15% for validation
-    test_size = (
-        total_rows - train_size - validation_size
-    )  # remaining 15% for testing
 
     # Split the data
     train_data = raw_data_sample[:train_size]
     validation_data = raw_data_sample[train_size : train_size + validation_size]
     test_data = raw_data_sample[train_size + validation_size :]
-    return (train_data,)
+    return test_data, train_data, validation_data
+
+
+@app.cell
+def _(test_data, validation_data):
+    test_data
+
+    validation_data
+    return
 
 
 @app.cell

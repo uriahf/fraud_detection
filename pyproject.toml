@@ -1,5 +1,5 @@
 [project]
-name = "fraud-detection"
+name = "fraud_detection"
 version = "0.1.0"
 description = "Add your description here"
 readme = "README.md"
@@ -9,6 +9,11 @@ dependencies = [
     "alter>=1.6",
     "lifelines>=0.30.0",
     "marimo>=0.18.1",
+    "polars>=1.35.2",
     "rtichoke>=0.1.17",
     "scikit-learn>=1.7.2",
 ]
+
+[build-system]
+requires = ["uv_build>=0.9.13,<0.10.0"]
+build-backend = "uv_build"
