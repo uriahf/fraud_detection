@@ -16,8 +16,9 @@ app = marimo.App(width="medium")
 def _():
     import polars as pl
 
-    raw_data = pl.read_csv("data\creditcard.csv",
-        schema_overrides={"Time": pl.Float64})
+    raw_data = pl.read_csv(
+        "data\creditcard.csv", schema_overrides={"Time": pl.Float64}
+    )
     return pl, raw_data
 
 
@@ -41,12 +42,14 @@ def _(raw_data):
     total_rows = raw_data_sample.height
     train_size = int(total_rows * 0.7)  # 70% for training
     validation_size = int(total_rows * 0.15)  # 15% for validation
-    test_size = total_rows - train_size - validation_size  # remaining 15% for testing
+    test_size = (
+        total_rows - train_size - validation_size
+    )  # remaining 15% for testing
 
     # Split the data
     train_data = raw_data_sample[:train_size]
-    validation_data = raw_data_sample[train_size:train_size + validation_size]
-    test_data = raw_data_sample[train_size + validation_size:]
+    validation_data = raw_data_sample[train_size : train_size + validation_size]
+    test_data = raw_data_sample[train_size + validation_size :]
     return (train_data,)
 
 
@@ -64,7 +67,6 @@ def _(train_data):
 
 @app.cell
 def _(train_data):
-
     X = train_data.drop("Class").to_numpy()
     y = train_data["Class"].to_numpy()
     return X, y
@@ -76,8 +78,8 @@ def _():
 
     clf = LogisticRegression(
         max_iter=1000,
-        solver="liblinear",   # works well for binary, sparse-ish data
-        class_weight="balanced"  # handles the heavy class imbalance
+        solver="liblinear",  # works well for binary, sparse-ish data
+        class_weight="balanced",  # handles the heavy class imbalance
     )
     return (clf,)
 
@@ -95,9 +97,7 @@ def _(X, clf, y):
 
 @app.cell
 def _(X, clf):
-    preds = clf.predict_proba(X)[:,1]
-
-    preds
+    preds = clf.predict_proba(X)[:, 1]
     return (preds,)
 
 
@@ -105,11 +105,7 @@ def _(X, clf):
 def _(preds, y):
     from rtichoke.performance_data.performance_data import prepare_performance_data
 
-    prepare_performance_data(
-        probs = {"model": preds},
-        reals = {"model": y},
-        by=0.1
-    )
+    prepare_performance_data(probs={"model": preds}, reals={"model": y}, by=0.1)
     return
 
 
@@ -117,11 +113,7 @@ def _(preds, y):
 def _(preds, y):
     from rtichoke.discrimination.roc import create_roc_curve
 
-    create_roc_curve(
-        probs = {"model": preds},
-        reals = {"model": y},
-        by=0.1
-    )
+    create_roc_curve(probs={"model": preds}, reals={"model": y}, by=0.1)
     return
 
 
@@ -133,12 +125,12 @@ def _(y):
 
 @app.cell
 def _(preds, y):
-    from rtichoke.discrimination.precision_recall import create_precision_recall_curve
+    from rtichoke.discrimination.precision_recall import (
+        create_precision_recall_curve,
+    )
 
     create_precision_recall_curve(
-        probs = {"model": preds},
-        reals = {"model": y},
-        by=0.01
+        probs={"model": preds}, reals={"model": y}, by=0.01
     )
     return
 
