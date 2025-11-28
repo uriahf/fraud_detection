@@ -1,0 +1,14 @@
+[project]
+name = "fraud-detection"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "altair>=6.0.0",
+    "alter>=1.6",
+    "lifelines>=0.30.0",
+    "marimo>=0.18.1",
+    "rtichoke>=0.1.17",
+    "scikit-learn>=1.7.2",
+]
