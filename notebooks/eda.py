@@ -185,7 +185,7 @@ def _(test_data, train_data, validation_data):
 
     X_test = test_data.drop("Class").to_numpy()
     y_test = test_data["Class"].to_numpy()
-    return X_test, X_train, X_val, y_train, y_val
+    return X_test, X_train, X_val, y_test, y_train, y_val
 
 
 @app.cell(hide_code=True)
@@ -292,7 +292,7 @@ def _(X_test, X_train, X_val, y_train, y_val):
     plt.ylabel("Features")
     plt.xlabel("Importance Score (Gain)")
     plt.gca()
-    return preds_lgbm_train, preds_lgbm_val
+    return preds_lgbm_test, preds_lgbm_train, preds_lgbm_val
 
 
 @app.cell(hide_code=True)
@@ -512,7 +512,7 @@ def _(
     )
 
     selected_curve
-    return (prepare_performance_data,)
+    return plot_decision_curve, prepare_performance_data
 
 
 @app.cell(hide_code=True)
@@ -567,7 +567,7 @@ def _(
     )
 
     selected_curve_ppcr
-    return
+    return (plot_lift_curve,)
 
 
 @app.cell(hide_code=True)
@@ -582,6 +582,142 @@ def _(mo):
 def _(mo):
     mo.md(r"""
     # Performance for selected Model (Test Set)
+    """)
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    Now we can explore model performance of the chosen light-gbm model on the test set
+    """)
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    ## Discrimination (By PPCR)
+    """)
+    return
+
+
+@app.cell
+def _(preds_lgbm_test, prepare_performance_data, y_test):
+    performance_data = prepare_performance_data(
+        probs={"lgbm": preds_lgbm_test},
+        reals={"lgbm": y_test},
+        stratified_by=["ppcr"],
+    )
+
+    performance_data
+    return (performance_data,)
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    #### Area Under the ROC / PR Curves
+    """)
+    return
+
+
+@app.cell(hide_code=True)
+def _(preds_lgbm_test, y_test):
+    from sklearn.metrics import roc_auc_score, precision_recall_curve, auc
+
+    # Calculate AUROC
+    _auroc = roc_auc_score(y_test, preds_lgbm_test)
+
+    # Calculate PRAUC
+    _precision, _recall, _ = precision_recall_curve(y_test, preds_lgbm_test)
+    _prauc = auc(_recall, _precision)
+
+    print("auroc:", _auroc)
+    print("auprc:", _prauc)
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    #### Discrimination Curves
+    """)
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    discrimination_curve_radio = mo.ui.radio(
+        options=["ROC", "Lift", "Gains", "Precision-Recall"],
+        value="ROC",
+        label="Discrimination Curve",
+    )
+
+    discrimination_curve_radio
+    return (discrimination_curve_radio,)
+
+
+@app.cell(hide_code=True)
+def _(discrimination_curve_radio, performance_data, plot_lift_curve):
+    from rtichoke import (
+        plot_roc_curve,
+        plot_gains_curve,
+        plot_precision_recall_curve,
+    )
+
+    roc_curve = plot_roc_curve(performance_data, stratified_by=["ppcr"])
+
+    lift_curve = plot_lift_curve(performance_data, stratified_by=["ppcr"])
+
+    gains_curve = plot_gains_curve(performance_data, stratified_by=["ppcr"])
+
+    precision_recall = plot_precision_recall_curve(
+        performance_data, stratified_by=["ppcr"]
+    )
+
+    curve_lookup = {
+        "ROC": roc_curve,
+        "Gains": gains_curve,
+        "Lift": lift_curve,
+        "Precision-Recall": precision_recall,
+    }
+
+    selected_curve_discrimination = curve_lookup[discrimination_curve_radio.value]
+    selected_curve_discrimination
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    ## Net Benefit (By Probability Threshold)
+    """)
+    return
+
+
+@app.cell(hide_code=True)
+def _(pl, preds_lgbm_test, prepare_performance_data, y_test):
+    performance_data_test_by_threshold = prepare_performance_data(
+        probs={"lgbm": preds_lgbm_test},
+        reals={"lgbm": y_test},
+        stratified_by=["probability_threshold"],
+    ).sort(pl.col("chosen_cutoff"))
+
+    performance_data_test_by_threshold
+    return (performance_data_test_by_threshold,)
+
+
+@app.cell(hide_code=True)
+def _(performance_data_test_by_threshold, plot_decision_curve):
+    plot_decision_curve(performance_data_test_by_threshold)
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    Our model performs well in terms of discrimination, in terms of Net-Benefit it doesn't perform well on high probability threshold values but they might not be relevant for our use case. We tend to worry more about False-Negatives, therefore we might be satisfied with a positive Net-Benefit for p.threshold < 0.5
     """)
     return
 
