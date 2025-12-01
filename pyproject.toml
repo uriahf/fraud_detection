@@ -8,10 +8,14 @@ dependencies = [
     "altair>=6.0.0",
     "alter>=1.6",
     "lifelines>=0.30.0",
+    "lightgbm>=4.6.0",
     "marimo>=0.18.1",
+    "openai>=2.8.1",
     "polars>=1.35.2",
-    "rtichoke>=0.1.17",
+    "pyarrow>=22.0.0",
+    "rtichoke>=0.1.22",
     "scikit-learn>=1.7.2",
+    "shap>=0.49.1",
 ]
 
 [build-system]
