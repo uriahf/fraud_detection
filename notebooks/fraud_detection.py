@@ -30,12 +30,16 @@ def _(mo):
 
 @app.cell(hide_code=True)
 def _():
-    from fraud_detection.data.loader import read_data
+    import polars as pl
+
+
+    def read_data(file_path="data/creditcard.csv"):
+        return pl.read_csv(file_path, schema_overrides={"Time": pl.Float64})
 
     raw_data = read_data()
 
     raw_data
-    return (raw_data,)
+    return pl, raw_data
 
 
 @app.cell(hide_code=True)
@@ -129,8 +133,7 @@ def _(mo):
 
 
 @app.cell(hide_code=True)
-def _(train_data):
-    import polars as pl
+def _(pl, train_data):
     import altair as alt
 
     cols = train_data.columns
@@ -164,7 +167,7 @@ def _(train_data):
     )
 
     heatmap
-    return alt, cols, pl
+    return alt, cols
 
 
 @app.cell(hide_code=True)
